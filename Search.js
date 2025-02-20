@@ -26,6 +26,9 @@ export default function Search() {
 }
   return (
     <View style={{flex:1, backgroundColor:'black'}}>
+      <View>
+        <Text style={{color:'white', top:35,left:30, fontSize:20}}>Add City</Text>
+      </View>
         <View style={{flexDirection:'row'}}>
           <TextInput 
           style={styles.searchBox}
@@ -96,7 +99,7 @@ const styles = StyleSheet.create({
   borderRadius:10,
   paddingVertical:7,
   paddingHorizontal:10,
-  backgroundColor:'#660198'
+  
  },
  buttonText:{
   color:'white'

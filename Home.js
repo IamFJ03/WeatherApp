@@ -1,12 +1,15 @@
-import React,{useEffect, useState, useContext} from 'react';
+import React,{useEffect, useState, useContext, useRef} from 'react';
 import {View, Text, StyleSheet, FlatList, Image, TouchableOpacity} from 'react-native';
 import {GlobalContext} from './Context/index';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import Card from '../utils/Card';
+import { SwipeListView } from 'react-native-swipe-list-view';
 
 export default function Home({navigation}) {
-
+  const swipeableRef = useRef(null);
   const {savedCity, setSavedCity} = useContext(GlobalContext);
   const [loading, setLoading] = useState(true);
 
@@ -61,68 +64,64 @@ export default function Home({navigation}) {
       loadCities();
     }, [])
   );
+  const deleteCity = async (name) => {
+    const updatedCity = savedCity.filter((city)=> city.name !== name)
+    setSavedCity(updatedCity);
+    await AsyncStorage.setItem('savedCity', JSON.stringify(savedCity.filter((city)=> city.name !== name)))
+  }
   return (
     <View style={{flex:1,backgroundColor:'black'}}>
-    
+      <View style={{flexDirection:'row',marginBottom:40}}>
+    <Text style={{color:'white', fontSize:25,top:30,left:20}}>Weather</Text>
     <Icon name='city' size={30} color='white' style={styles.addCity} onPress={() => navigation.navigate("Search")}/>
+    </View>
+    <GestureHandlerRootView>
+
       <View>
       {loading ? (
           <Text style={{ color: 'white', textAlign: 'center', marginTop: 50 }}>Loading...</Text>
         ) : (
-        <FlatList
+        <SwipeListView
         data={savedCity}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({item}) => (
-          <TouchableOpacity style={styles.cityBox} onPress={() => navigation.navigate("City", {item})}>
-                  <Image
-                    source={{
-                      uri: `https://openweathermap.org/img/wn/${item.weather[0].icon}@2x.png`,
-                    }}
-                    style={styles.weatherIcon}
-                  />
-                  <View style={{ flex: 1, marginTop:10 }}>
-                    <Text style={styles.cityName}>{item.name}</Text>
-                    <Text style={{ color: 'white' }}>{item.main.feels_like}</Text>
-                  </View>
-                  <Text style={styles.tempText}>{item.main.temp}°</Text>
-                </TouchableOpacity>
+          <Card item={item} navigation={navigation}/>
   )}
+        renderHiddenItem={({item}) => (
+          <TouchableOpacity style={styles.deleteButton} onPress={() => deleteCity(item.name)}>
+            <Text style={styles.ButtonText}>Delete</Text>
+          </TouchableOpacity>
+        )}
+        leftOpenValue={90}
+        
+        
         />
 )}
       </View>
+      </GestureHandlerRootView>
     </View>
   )
 }
 
 const styles = StyleSheet.create({
-  addCity:{
-    top:20,
-    marginLeft:'90%'
+  deleteButton:{
+    marginTop:35,
+    height:'70%',
+    width:'25%',
+    marginLeft:20,
+    paddingVertical:35,
+    paddingHorizontal:15,
+    borderRadius:20,
+    backgroundColor:'red'
   },
-  weatherIcon: {
-    bottom:10,
-    width: 100,
-    height: 100 
-   },
-   cityBox:{
-     height:110,
-     flexDirection:'row',
+  ButtonText:{
     color:'white',
-    borderRadius:10,
-    marginTop:40,
-    paddingVertical:15,
-    paddingHorizontal:10,
-    backgroundColor:'#36454F',
-    width:'90%',
-    left:'5%'
-   },
-   cityName:{
-    color:'white',
-    fontSize:20
-   },
-   tempText:{
-    top:15,
-    color:'white',
-    fontSize:20
-   }
+    fontSize:15,
+    fontWeight:'bold',
+  },
+  addCity:{
+    top:35,
+    marginLeft:'55%'
+  },
+  
 })
